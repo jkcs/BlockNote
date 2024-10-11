@@ -208,9 +208,11 @@ function blockOrInlineContentToContentNode(
   if (!schema.nodes[type]) {
     throw new Error(`node type ${type} not found in schema`);
   }
-
   if (!block.content) {
     contentNode = schema.nodes[type].create(block.props);
+  } else if (block.type === "codeBlock" && typeof block.content === "string") {
+    const nodes = [schema.text(block.content)];
+    contentNode = schema.nodes[type].create(block.props, nodes);
   } else if (typeof block.content === "string") {
     const nodes = inlineContentToNodes([block.content], schema, styleSchema);
     contentNode = schema.nodes[type].create(block.props, nodes);

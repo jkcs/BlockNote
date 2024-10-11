@@ -27,7 +27,6 @@ export const backtickInputRegex = /^```([a-z]+)?[\s\n]$/;
 
 export const CodeBlockContent = createStronglyTypedTiptapNode({
   name: "codeBlock",
-  isolating: true,
   addOptions() {
     return {
       // TODO: Options
@@ -35,14 +34,12 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
     };
   },
 
-  // TODO type check
-  content: "text*",
-
+  content: "inline*",
   marks: "",
 
   group: "blockContent",
   code: true,
-
+  isolating: true,
   defining: true,
 
   addAttributes() {
@@ -131,7 +128,6 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         return false;
       },
 
-      // exit node on triple enter
       Enter: ({ editor }) => {
         const { contentType } = getBlockInfoFromPos(
           editor.state.doc,
@@ -145,29 +141,38 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
           return false;
         }
 
-        const { state } = editor;
-        const { selection } = state;
-        const { $from, empty } = selection;
-
-        if (!empty || $from.parent.type !== this.type) {
-          return false;
-        }
-
-        const isAtEnd = $from.parentOffset === $from.parent.nodeSize - 2;
-        const endsWithDoubleNewline = $from.parent.textContent.endsWith("\n\n");
-        if (!isAtEnd || !endsWithDoubleNewline) {
-          return false;
-        }
-
         return editor
           .chain()
+          .insertContent({ type: "text", text: "\n" })
           .command(({ tr }) => {
-            tr.delete($from.pos - 2, $from.pos);
-
             return true;
           })
           .exitCode()
           .run();
+        //
+        // const { state } = editor;
+        // const { selection } = state;
+        // const { $from, empty } = selection;
+        //
+        // if (!empty || $from.parent.type !== this.type) {
+        //   return false;
+        // }
+        //
+        // const isAtEnd = $from.parentOffset === $from.parent.nodeSize - 2;
+        // const endsWithDoubleNewline = $from.parent.textContent.endsWith("\n\n");
+        // if (!isAtEnd || !endsWithDoubleNewline) {
+        //   return false;
+        // }
+        //
+        // return editor
+        //   .chain()
+        //   .command(({ tr }) => {
+        //     tr.delete($from.pos - 2, $from.pos);
+        //
+        //     return true;
+        //   })
+        //   .exitCode()
+        //   .run();
       },
 
       // exit node on arrow down

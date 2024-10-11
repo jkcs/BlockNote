@@ -670,7 +670,7 @@ export const BlockContainer = Node.create<{
         // deletes the selection beforehand, if it's not empty.
         () =>
           commands.command(({ state, chain }) => {
-            const { contentNode } = getBlockInfoFromPos(
+            const { contentNode, contentType } = getBlockInfoFromPos(
               state.doc,
               state.selection.from
             )!;
@@ -679,7 +679,7 @@ export const BlockContainer = Node.create<{
               state.selection.$anchor.parentOffset === 0;
             const blockEmpty = contentNode.childCount === 0;
 
-            if (!blockEmpty) {
+            if (!blockEmpty && !contentType.spec.code) {
               chain()
                 .deleteSelection()
                 .BNSplitBlock(

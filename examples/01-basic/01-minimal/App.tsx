@@ -25,6 +25,49 @@ export default function App() {
           language: "javascript",
         },
       },
+      {
+        type: "codeBlock",
+        content: `console.log("Hello, world!"); const a = 1; async function main() { while (true) { await sleep(); } }`,
+        props: {
+          language: "javascript",
+        },
+      },
+      {
+        type: "paragraph",
+        content: "Welcome to this demo!",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
+      {
+        type: "paragraph",
+        content: "",
+      },
     ],
   });
 
