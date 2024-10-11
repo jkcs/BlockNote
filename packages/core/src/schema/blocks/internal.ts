@@ -206,7 +206,7 @@ type StronglyTypedTipTapNode<
 
 export function createStronglyTypedTiptapNode<
   Name extends string,
-  Content extends "inline*" | "tableRow+" | ""
+  Content extends "inline*" | "tableRow+" | "" | "text*"
 >(config: NodeConfig & { name: Name; content: Content }) {
   return Node.create(config) as StronglyTypedTipTapNode<Name, Content>; // force re-typing (should be safe as it's type-checked from the config)
 }
@@ -232,6 +232,7 @@ export function createBlockSpecFromStronglyTypedTiptapNode<
   T extends Node,
   P extends PropSchema
 >(node: T, propSchema: P, requiredExtensions?: Array<Extension | Node>) {
+  console.log(node, "=====");
   return createInternalBlockSpec(
     {
       type: node.name as T["name"],

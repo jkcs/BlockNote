@@ -468,3 +468,25 @@ NESTED BLOCKS
   justify-content: flex-start;
   text-align: justify;
 }
+
+/* Code Block */
+.bn-block-content[data-content-type="codeBlock"] {
+  display: block;
+  padding: 30px 5px 25px 20px;
+  background-color: #27272A;
+  font-size: 14px;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  position: relative;
+  font-family: monospace;
+}
+
+.bn-block-content[data-content-type="codeBlock"] .code-language {
+  position: absolute;
+  left: 20px;
+  top: 6px;
+  font-size: 12px;
+  color: #fff;
+  display: flex;
+  gap: 5px;
+}
