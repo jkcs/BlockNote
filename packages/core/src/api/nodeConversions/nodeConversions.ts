@@ -155,6 +155,10 @@ export function inlineContentToNodes<
   return nodes;
 }
 
+export function codeBlockToNodes(content: string, schema: Schema): Node[] {
+  return [schema.text(content)];
+}
+
 /**
  * converts an array of inline content elements to prosemirror nodes
  */
@@ -211,7 +215,7 @@ function blockOrInlineContentToContentNode(
   if (!block.content) {
     contentNode = schema.nodes[type].create(block.props);
   } else if (block.type === "codeBlock" && typeof block.content === "string") {
-    const nodes = [schema.text(block.content)];
+    const nodes = codeBlockToNodes(block.content, schema);
     contentNode = schema.nodes[type].create(block.props, nodes);
   } else if (typeof block.content === "string") {
     const nodes = inlineContentToNodes([block.content], schema, styleSchema);

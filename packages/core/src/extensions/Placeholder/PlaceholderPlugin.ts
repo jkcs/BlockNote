@@ -91,7 +91,7 @@ export const PlaceholderPlugin = (
         const $pos = selection.$anchor;
         const node = $pos.parent;
 
-        if (node.content.size > 0) {
+        if (node.content.size > 0 || node.type.spec.code) {
           return null;
         }
 

@@ -70,7 +70,7 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    const { dom, contentDOM } = createDefaultBlockDOMOutputSpec(
+    return createDefaultBlockDOMOutputSpec(
       this.name,
       "pre",
       {
@@ -82,14 +82,6 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         "data-language": node.attrs.language || "",
       }
     );
-    const code = document.createElement("code");
-
-    contentDOM.appendChild(code);
-    dom.appendChild(contentDOM);
-    return {
-      dom,
-      contentDOM,
-    };
   },
 
   // TODO commands
@@ -112,20 +104,63 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
     return {
       // "Mod-Alt-c": () => this.editor.commands.toggleCodeBlock(),
 
-      // remove code block when at start of document or code block is empty
-      Backspace: () => {
+      Tab: ({ editor }) => {
+        // TODO: section tab handle
+        return editor
+          .chain()
+          .insertContent({ type: "text", text: "\t" })
+          .command(() => {
+            return true;
+          })
+          .exitCode()
+          .run();
+      },
+      Delete: ({ editor }) => {
         const { empty, $anchor } = this.editor.state.selection;
-        const isAtStart = $anchor.pos === 1;
-
-        if (!empty || $anchor.parent.type.name !== this.name) {
+        const blockInfo = getBlockInfoFromPos(
+          editor.state.doc,
+          editor.state.selection.from
+        );
+        if (!blockInfo) {
           return false;
         }
 
-        if (isAtStart || !$anchor.parent.textContent.length) {
-          return this.editor.commands.clearNodes();
+        const { node, endPos } = blockInfo;
+        const start = $anchor.pos;
+
+        return node.content.size > 0 && start === endPos - 1 && empty;
+      },
+      "Mod-a": ({ editor }) => {
+        const blockInfo = getBlockInfoFromPos(
+          editor.state.doc,
+          editor.state.selection.from
+        );
+        if (blockInfo === undefined) {
+          return false;
+        }
+        const { startPos, endPos } = blockInfo;
+
+        editor.commands.setTextSelection({
+          from: startPos + 1,
+          to: endPos - 1,
+        });
+        return true;
+      },
+      // remove code block when at start of document or code block is empty
+      Backspace: ({ editor }) => {
+        const { empty, $anchor } = this.editor.state.selection;
+        const blockInfo = getBlockInfoFromPos(
+          editor.state.doc,
+          editor.state.selection.from
+        );
+        if (!blockInfo) {
+          return false;
         }
 
-        return false;
+        const { node, startPos } = blockInfo;
+        const start = $anchor.pos;
+
+        return node.content.size > 0 && start === startPos + 1 && empty;
       },
 
       Enter: ({ editor }) => {
@@ -255,6 +290,7 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
     };
   },
 
+  // TODO: copy and paste
   addProseMirrorPlugins() {
     return [
       shikiLazyPlugin,

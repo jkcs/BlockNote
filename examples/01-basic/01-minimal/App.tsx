@@ -7,13 +7,13 @@ export default function App() {
   // Creates a new editor instance.
   const editor = useCreateBlockNote({
     initialContent: [
-      {
-        type: "codeBlock",
-        content: 'console.log("Hello, world!");',
-        props: {
-          language: "javascript",
-        },
-      },
+      // {
+      //   type: "codeBlock",
+      //   content: 'console.log("Hello, world!");',
+      //   props: {
+      //     language: "javascript",
+      //   },
+      // },
       {
         type: "codeBlock",
         content: `async function main() {
@@ -27,11 +27,18 @@ export default function App() {
       },
       {
         type: "codeBlock",
-        content: `console.log("Hello, world!"); const a = 1; async function main() { while (true) { await sleep(); } }`,
+        content: ``,
         props: {
           language: "javascript",
         },
       },
+      // {
+      //   type: "codeBlock",
+      //   content: `console.log("Hello, world!"); const a = 1; async function main() { while (true) { await sleep(); } }`,
+      //   props: {
+      //     language: "javascript",
+      //   },
+      // },
       {
         type: "paragraph",
         content: "Welcome to this demo!",
