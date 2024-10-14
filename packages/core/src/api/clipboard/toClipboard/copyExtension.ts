@@ -22,6 +22,7 @@ export async function selectedFragmentToHTML<
   clipboardHTML: string;
   externalHTML: string;
   markdown: string;
+  text: string;
 }> {
   // Checks if a `blockContent` node is being copied and expands
   // the selection to the parent `blockContainer` node. This is
@@ -87,7 +88,10 @@ export async function selectedFragmentToHTML<
 
   const markdown = cleanHTMLToMarkdown(externalHTML);
 
-  return { clipboardHTML, externalHTML, markdown };
+  const slice = view.state.selection.content();
+  const text = slice.content.textBetween(0, slice.content.size, "\n");
+
+  return { clipboardHTML, externalHTML, markdown, text };
 }
 
 const copyToClipboard = <
@@ -104,14 +108,15 @@ const copyToClipboard = <
   event.clipboardData!.clearData();
 
   (async () => {
-    const { clipboardHTML, externalHTML, markdown } =
+    const { clipboardHTML, externalHTML, markdown, text } =
       await selectedFragmentToHTML(view, editor);
 
     // TODO: Writing to other MIME types not working in Safari for
     //  some reason.
     event.clipboardData!.setData("blocknote/html", clipboardHTML);
     event.clipboardData!.setData("text/html", externalHTML);
-    event.clipboardData!.setData("text/plain", markdown);
+    event.clipboardData!.setData("text/markdown", markdown);
+    event.clipboardData!.setData("text/plain", text);
   })();
 };
 
@@ -171,14 +176,15 @@ export const createCopyToClipboardExtension = <
                 event.dataTransfer!.clearData();
 
                 (async () => {
-                  const { clipboardHTML, externalHTML, markdown } =
+                  const { clipboardHTML, externalHTML, markdown, text } =
                     await selectedFragmentToHTML(view, editor);
 
                   // TODO: Writing to other MIME types not working in Safari for
                   //  some reason.
                   event.dataTransfer!.setData("blocknote/html", clipboardHTML);
                   event.dataTransfer!.setData("text/html", externalHTML);
-                  event.dataTransfer!.setData("text/plain", markdown);
+                  event.dataTransfer!.setData("text/markdown", markdown);
+                  event.dataTransfer!.setData("text/plain", text);
                 })();
                 // Prevent default PM handler to be called
                 return true;

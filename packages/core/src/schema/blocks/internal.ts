@@ -232,7 +232,6 @@ export function createBlockSpecFromStronglyTypedTiptapNode<
   T extends Node,
   P extends PropSchema
 >(node: T, propSchema: P, requiredExtensions?: Array<Extension | Node>) {
-  console.log(node, "=====");
   return createInternalBlockSpec(
     {
       type: node.name as T["name"],
