@@ -1,8 +1,6 @@
 import { Editor } from "@tiptap/core/";
 import { NodeType } from "@tiptap/pm/model";
-import { getBlockInfoFromPos } from "../../api/getBlockInfoFromPos";
 import { Selection } from "@tiptap/pm/state";
-import { NodeSelection } from "prosemirror-state";
 
 export function getArrowDownIcon() {
   const icon = document.createElement("div");
