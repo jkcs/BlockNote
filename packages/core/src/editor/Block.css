@@ -489,4 +489,6 @@ NESTED BLOCKS
   color: #fff;
   display: flex;
   gap: 5px;
+  user-select: none;
+  cursor: pointer;
 }

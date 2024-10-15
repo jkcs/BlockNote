@@ -6,9 +6,13 @@ import {
 } from "../../schema";
 
 import { textblockTypeInputRule } from "@tiptap/core";
-import { Plugin, PluginKey, Selection, TextSelection } from "@tiptap/pm/state";
+import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 import { createDefaultBlockDOMOutputSpec } from "../defaultBlockHelpers";
-import { getArrowDownIcon } from "./CodeBLockHelpers";
+import {
+  getArrowDownIcon,
+  handleArrowKeysPress,
+  isInCodeBlock,
+} from "./CodeBLockHelpers";
 import { getBlockInfoFromPos } from "../../api/getBlockInfoFromPos";
 
 const defaultLanguage = "javascript";
@@ -41,6 +45,7 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
   code: true,
   isolating: true,
   defining: true,
+  selectable: true,
 
   addAttributes() {
     return {
@@ -70,7 +75,7 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
   },
 
   renderHTML({ node, HTMLAttributes }) {
-    return createDefaultBlockDOMOutputSpec(
+    const { dom, contentDOM } = createDefaultBlockDOMOutputSpec(
       this.name,
       "pre",
       {
@@ -82,6 +87,16 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         "data-language": node.attrs.language || "",
       }
     );
+
+    const element = document.createElement("code");
+    element.classList.add("language-" + node.attrs.language || "");
+
+    contentDOM.appendChild(element);
+
+    return {
+      dom,
+      contentDOM: element,
+    };
   },
 
   // TODO commands
@@ -105,10 +120,13 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       // "Mod-Alt-c": () => this.editor.commands.toggleCodeBlock(),
 
       Tab: ({ editor }) => {
-        // TODO: section tab handle
+        if (!isInCodeBlock(editor, this.type)) {
+          return false;
+        }
+
         return editor
           .chain()
-          .insertContent({ type: "text", text: "\t" })
+          .insertContent({ type: "text", text: "  " })
           .command(() => {
             return true;
           })
@@ -116,14 +134,15 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
           .run();
       },
       Delete: ({ editor }) => {
+        if (!isInCodeBlock(editor, this.type)) {
+          return false;
+        }
+
         const { empty, $anchor } = this.editor.state.selection;
         const blockInfo = getBlockInfoFromPos(
           editor.state.doc,
           editor.state.selection.from
         );
-        if (!blockInfo) {
-          return false;
-        }
 
         const { node, endPos } = blockInfo;
         const start = $anchor.pos;
@@ -131,13 +150,15 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         return node.content.size > 0 && start === endPos - 1 && empty;
       },
       "Mod-a": ({ editor }) => {
+        if (!isInCodeBlock(editor, this.type)) {
+          return false;
+        }
+
         const blockInfo = getBlockInfoFromPos(
           editor.state.doc,
           editor.state.selection.from
         );
-        if (blockInfo === undefined) {
-          return false;
-        }
+
         const { startPos, endPos } = blockInfo;
 
         editor.commands.setTextSelection({
@@ -148,14 +169,15 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       },
       // remove code block when at start of document or code block is empty
       Backspace: ({ editor }) => {
+        if (!isInCodeBlock(editor, this.type)) {
+          return false;
+        }
+
         const { empty, $anchor } = this.editor.state.selection;
         const blockInfo = getBlockInfoFromPos(
           editor.state.doc,
           editor.state.selection.from
         );
-        if (!blockInfo) {
-          return false;
-        }
 
         const { node, startPos } = blockInfo;
         const start = $anchor.pos;
@@ -164,6 +186,10 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       },
 
       Enter: ({ editor }) => {
+        if (!isInCodeBlock(editor, this.type)) {
+          return false;
+        }
+
         const { contentType } = getBlockInfoFromPos(
           editor.state.doc,
           editor.state.selection.from
@@ -172,14 +198,14 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         const selectionEmpty =
           editor.state.selection.anchor === editor.state.selection.head;
 
-        if (contentType.name !== "codeBlock" || !selectionEmpty) {
+        if (contentType !== this.type || !selectionEmpty) {
           return false;
         }
 
         return editor
           .chain()
           .insertContent({ type: "text", text: "\n" })
-          .command(({ tr }) => {
+          .command(() => {
             return true;
           })
           .exitCode()
@@ -210,38 +236,18 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         //   .run();
       },
 
-      // exit node on arrow down
+      // exit node on arrow keys
       ArrowDown: ({ editor }) => {
-        const { state } = editor;
-        const { selection, doc } = state;
-        const { $from, empty } = selection;
-
-        if (!empty || $from.parent.type !== this.type) {
-          return false;
-        }
-
-        const isAtEnd = $from.parentOffset === $from.parent.nodeSize - 2;
-
-        if (!isAtEnd) {
-          return false;
-        }
-
-        const after = $from.after();
-
-        if (after === undefined) {
-          return false;
-        }
-
-        const nodeAfter = doc.nodeAt(after);
-
-        if (nodeAfter) {
-          return editor.commands.command(({ tr }) => {
-            tr.setSelection(Selection.near(doc.resolve(after)));
-            return true;
-          });
-        }
-
-        return editor.commands.exitCode();
+        return handleArrowKeysPress(editor, this.type, "down");
+      },
+      ArrowUp: ({ editor }) => {
+        return handleArrowKeysPress(editor, this.type, "up");
+      },
+      ArrowLeft: ({ editor }) => {
+        return handleArrowKeysPress(editor, this.type, "left");
+      },
+      ArrowRight: ({ editor }) => {
+        return handleArrowKeysPress(editor, this.type, "right");
       },
     };
   },
@@ -274,6 +280,7 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       );
       const languageWarp = document.createElement("div");
       languageWarp.className = "code-language";
+      languageWarp.setAttribute("contentEditable", "false");
       const spanElement = document.createElement("span");
       spanElement.innerText = node.attrs.language;
 
@@ -290,12 +297,12 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
     };
   },
 
-  // TODO: copy and paste
   addProseMirrorPlugins() {
     return [
       shikiLazyPlugin,
       // this plugin creates a code block for pasted content from VS Code
       // we can also detect the copied code language
+      // TODO: Move Plugin in CopyExtension
       new Plugin({
         key: new PluginKey("codeBlockVSCodeHandler"),
         props: {

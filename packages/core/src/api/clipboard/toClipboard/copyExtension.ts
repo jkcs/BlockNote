@@ -1,5 +1,5 @@
 import { Extension } from "@tiptap/core";
-import { Node } from "prosemirror-model";
+import { Fragment, Node } from "prosemirror-model";
 import { NodeSelection, Plugin } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import * as pmView from "prosemirror-view";
@@ -10,6 +10,25 @@ import { BlockSchema, InlineContentSchema, StyleSchema } from "../../../schema";
 import { initializeESMDependencies } from "../../../util/esmDependencies";
 import { createExternalHTMLExporter } from "../../exporters/html/externalHTMLExporter";
 import { cleanHTMLToMarkdown } from "../../exporters/markdown/markdownExporter";
+
+function findChildNodesOfType(
+  fragment: Fragment,
+  nodeTypeName: string
+): Node[] {
+  const nodes: Node[] = [];
+
+  fragment.forEach((node) => {
+    if (node.type.name === nodeTypeName) {
+      nodes.push(node);
+    }
+
+    if (node.content.size > 0) {
+      nodes.push(...findChildNodesOfType(node.content, nodeTypeName));
+    }
+  });
+
+  return nodes;
+}
 
 export async function selectedFragmentToHTML<
   BSchema extends BlockSchema,
@@ -51,6 +70,7 @@ export async function selectedFragmentToHTML<
   // HTML. If the selection is within a block content node, the block ancestry
   // is excluded as we only care about the inline content.
   let isWithinBlockContent = false;
+  let isWithinCodeBlock = false;
   const isWithinTable = view.state.selection instanceof CellSelection;
   if (!isWithinTable) {
     const fragmentWithoutParents = view.state.doc.slice(
@@ -58,6 +78,8 @@ export async function selectedFragmentToHTML<
       view.state.selection.to,
       false
     ).content;
+
+    const codeBlocks = findChildNodesOfType(selectedFragment, "codeBlock");
 
     const children = [];
     for (let i = 0; i < fragmentWithoutParents.childCount; i++) {
@@ -74,6 +96,11 @@ export async function selectedFragmentToHTML<
     if (isWithinBlockContent) {
       selectedFragment = fragmentWithoutParents;
     }
+
+    if (codeBlocks.length) {
+      isWithinCodeBlock = true;
+      selectedFragment = Fragment.from(codeBlocks);
+    }
   }
 
   await initializeESMDependencies();
@@ -83,7 +110,10 @@ export async function selectedFragmentToHTML<
   );
   const externalHTML = externalHTMLExporter.exportProseMirrorFragment(
     selectedFragment,
-    { simplifyBlocks: !isWithinBlockContent && !isWithinTable }
+    {
+      simplifyBlocks:
+        !isWithinCodeBlock && !isWithinBlockContent && !isWithinTable,
+    }
   );
 
   const markdown = cleanHTMLToMarkdown(externalHTML);

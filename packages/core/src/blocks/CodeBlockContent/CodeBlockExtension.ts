@@ -6,7 +6,6 @@ import {
 
 import { createHighlightPlugin } from "prosemirror-highlight";
 import { createParser, type Parser } from "prosemirror-highlight/shiki";
-import { Extension } from "@tiptap/core";
 
 let highlighter: Highlighter | undefined;
 let parser: Parser | undefined;
