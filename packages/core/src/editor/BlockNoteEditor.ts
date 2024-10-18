@@ -70,6 +70,7 @@ import { createInternalHTMLSerializer } from "../api/exporters/html/internalHTML
 import { PreviousBlockTypePlugin } from "../extensions/PreviousBlockType/PreviousBlockTypePlugin";
 import "../style.css";
 import { initializeESMDependencies } from "../util/esmDependencies";
+import { CodeBlockToolbarProsemirrorPlugin } from "../extensions/CodeBlock/CodeBlockPlugin";
 
 export type BlockNoteEditorOptions<
   BSchema extends BlockSchema,
@@ -279,6 +280,12 @@ export class BlockNoteEditor<
     | ((file: File, blockId?: string) => Promise<string | Record<string, any>>)
     | undefined;
 
+  public readonly codeBlockToolbar: CodeBlockToolbarProsemirrorPlugin<
+    BSchema,
+    ISchema,
+    SSchema
+  >;
+
   private onUploadStartCallbacks: ((blockId?: string) => void)[] = [];
   private onUploadEndCallbacks: ((blockId?: string) => void)[] = [];
 
@@ -349,6 +356,7 @@ export class BlockNoteEditor<
     this.sideMenu = new SideMenuProsemirrorPlugin(this);
     this.suggestionMenus = new SuggestionMenuProseMirrorPlugin(this);
     this.filePanel = new FilePanelProsemirrorPlugin(this as any);
+    this.codeBlockToolbar = new CodeBlockToolbarProsemirrorPlugin(this);
 
     if (checkDefaultBlockTypeInSchema("table", this)) {
       this.tableHandles = new TableHandlesProsemirrorPlugin(this as any);
@@ -375,6 +383,7 @@ export class BlockNoteEditor<
           this.linkToolbar.plugin,
           this.sideMenu.plugin,
           this.suggestionMenus.plugin,
+          this.codeBlockToolbar.plugin,
           ...(this.filePanel ? [this.filePanel.plugin] : []),
           ...(this.tableHandles ? [this.tableHandles.plugin] : []),
           PlaceholderPlugin(this, newOptions.placeholders),
