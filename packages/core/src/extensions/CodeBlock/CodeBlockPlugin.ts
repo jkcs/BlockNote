@@ -13,7 +13,7 @@ class CodeBlockToolbarView implements PluginView {
   public state?: CodeBlockState;
   public emitUpdate: () => void;
 
-  languageDom: HTMLElement | undefined;
+  blockPos: number | undefined;
 
   constructor(
     private readonly editor: BlockNoteEditor<any, any, any>,
@@ -63,7 +63,7 @@ class CodeBlockToolbarView implements PluginView {
         parent = parent.parentElement;
       }
 
-      this.languageDom = parent as HTMLElement;
+      this.blockPos = this.pmView.posAtDOM(parent as Node, 0);
 
       if (!this.state?.show && isinCodeLanguageEle && parent) {
         this.state = {
@@ -76,8 +76,16 @@ class CodeBlockToolbarView implements PluginView {
   };
 
   scrollHandler = () => {
-    if (this.state?.show && this.languageDom) {
-      this.state.referencePos = this.languageDom?.getBoundingClientRect();
+    if (this.state?.show && this.blockPos != null) {
+      const { id } = getBlockInfoFromPos(this.pmView.state.doc, this.blockPos);
+      const codeLanguageElement = this.pmView.root.querySelector(
+        `[data-node-type="blockContainer"][data-id="${id}"] .code-language`
+      );
+      if (!codeLanguageElement) {
+        return;
+      }
+
+      this.state.referencePos = codeLanguageElement.getBoundingClientRect();
       this.emitUpdate();
     }
   };

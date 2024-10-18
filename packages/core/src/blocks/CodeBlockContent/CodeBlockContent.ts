@@ -17,6 +17,11 @@ import { getBlockInfoFromPos } from "../../api/getBlockInfoFromPos";
 
 const defaultLanguage = "javascript";
 
+export const CodeBlockLanguageConfig = {
+  defaultLanguage,
+  bundledLanguages: Object.keys(bundledLanguages),
+};
+
 export const CodeBlockPropSchema = {
   language: {
     default: defaultLanguage,
