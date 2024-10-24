@@ -43,6 +43,7 @@ class CodeBlockToolbarView implements PluginView {
 
   clickHandler = (event: MouseEvent) => {
     const editorWrapper = this.pmView.dom.parentElement!;
+    const beforeBlockPos = this.blockPos;
 
     if (
       event &&
@@ -61,19 +62,37 @@ class CodeBlockToolbarView implements PluginView {
         parent = parent.parentElement;
       }
 
-      this.blockPos = this.pmView.posAtDOM(parent as Node, 0);
-      const blockInfo = getBlockInfoFromPos(
-        this.pmView.state.doc,
-        this.blockPos
-      );
+      if (isinCodeLanguageEle) {
+        this.blockPos = this.pmView.posAtDOM(parent as Node, 0);
+        const blockInfo = getBlockInfoFromPos(
+          this.pmView.state.doc,
+          this.blockPos
+        );
 
-      if (!this.state?.show && isinCodeLanguageEle && parent && blockInfo) {
-        this.state = {
-          show: true,
-          referencePos: parent.getBoundingClientRect(),
-          language: blockInfo.contentNode.attrs.language,
-        };
-        this.emitUpdate();
+        if (!this.state?.show && isinCodeLanguageEle && parent && blockInfo) {
+          this.state = {
+            show: true,
+            referencePos: parent.getBoundingClientRect(),
+            language: blockInfo.contentNode.attrs.language,
+          };
+          this.emitUpdate();
+        }
+      } else if (beforeBlockPos != null) {
+        const blockInfo = getBlockInfoFromPos(
+          this.pmView.state.doc,
+          beforeBlockPos
+        );
+
+        if (blockInfo) {
+          const { contentNode, startPos } = blockInfo;
+
+          this.pmView.dispatch(
+            this.pmView.state.tr.setNodeMarkup(startPos, null, {
+              ...contentNode.attrs,
+              lockSelector: false,
+            })
+          );
+        }
       }
     }
   };
@@ -114,6 +133,24 @@ class CodeBlockToolbarView implements PluginView {
 
   closeMenu = () => {
     if (this.state?.show) {
+      if (this.blockPos != null) {
+        const blockInfo = getBlockInfoFromPos(
+          this.pmView.state.doc,
+          this.blockPos
+        );
+        if (blockInfo) {
+          const { contentNode, startPos } = blockInfo;
+
+          this.pmView.dispatch(
+            this.pmView.state.tr.setNodeMarkup(startPos, null, {
+              ...contentNode.attrs,
+              showSelector: false,
+              lockSelector: false,
+            })
+          );
+        }
+      }
+
       this.state.show = false;
       this.emitUpdate();
     }

@@ -294,37 +294,38 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       const codeDOM = document.createElement("div");
       contentDOM.appendChild(codeDOM);
 
-      dom.appendChild(contentDOM);
+      const languageWarp = document.createElement("div");
+      languageWarp.className = "code-language";
 
       if (node.attrs.showSelector || node.attrs.lockSelector) {
-        const languageWarp = document.createElement("div");
-        languageWarp.className = "code-language";
-        languageWarp.setAttribute("contentEditable", "false");
-        const spanElement = document.createElement("span");
-        spanElement.innerText = node.attrs.language;
-
-        languageWarp.appendChild(spanElement);
-        languageWarp.appendChild(getArrowDownIcon());
-
-        languageWarp.addEventListener("click", (event: MouseEvent) => {
-          if (node.attrs.lockSelector) {
-            return;
-          }
-
-          event.stopPropagation();
-          const pos = getPos();
-          if (typeof pos === "number") {
-            view.dispatch(
-              view.state.tr.setNodeMarkup(pos, null, {
-                ...node.attrs,
-                showSelector: true,
-                lockSelector: true,
-              })
-            );
-          }
-        });
-        dom.insertBefore(languageWarp, contentDOM);
+        languageWarp.classList.add("show-selector");
       }
+
+      languageWarp.setAttribute("contentEditable", "false");
+      const spanElement = document.createElement("span");
+      spanElement.innerText = node.attrs.language;
+
+      languageWarp.appendChild(spanElement);
+      languageWarp.appendChild(getArrowDownIcon());
+
+      languageWarp.addEventListener("click", (event: MouseEvent) => {
+        if (node.attrs.lockSelector) {
+          return;
+        }
+
+        event.stopPropagation();
+        const pos = getPos();
+        if (typeof pos === "number") {
+          view.dispatch(
+            view.state.tr.setNodeMarkup(pos, null, {
+              ...node.attrs,
+              showSelector: true,
+              lockSelector: true,
+            })
+          );
+        }
+      });
+      dom.insertBefore(languageWarp, contentDOM);
 
       const elementMouseEnterHandler = () => {
         if (node.attrs.lockSelector) {
@@ -358,21 +359,15 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         }
       };
 
-      contentDOM.addEventListener("mouseenter", elementMouseEnterHandler);
-      contentDOM.addEventListener("mouseleave", elementMouseLeaveHandler);
+      dom.addEventListener("mouseenter", elementMouseEnterHandler);
+      dom.addEventListener("mouseleave", elementMouseLeaveHandler);
 
       return {
         dom,
         contentDOM: codeDOM,
         destroy: () => {
-          contentDOM.removeEventListener(
-            "mouseenter",
-            elementMouseEnterHandler
-          );
-          contentDOM.removeEventListener(
-            "mouseleave",
-            elementMouseLeaveHandler
-          );
+          dom.removeEventListener("mouseenter", elementMouseEnterHandler);
+          dom.removeEventListener("mouseleave", elementMouseLeaveHandler);
         },
       };
     };
