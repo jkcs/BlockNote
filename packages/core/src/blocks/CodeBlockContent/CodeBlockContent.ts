@@ -296,35 +296,35 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
 
       dom.appendChild(contentDOM);
 
-      // if (node.attrs.showSelector || node.attrs.lockSelector) {
-      const languageWarp = document.createElement("div");
-      languageWarp.className = "code-language";
-      languageWarp.setAttribute("contentEditable", "false");
-      const spanElement = document.createElement("span");
-      spanElement.innerText = node.attrs.language;
+      if (node.attrs.showSelector || node.attrs.lockSelector) {
+        const languageWarp = document.createElement("div");
+        languageWarp.className = "code-language";
+        languageWarp.setAttribute("contentEditable", "false");
+        const spanElement = document.createElement("span");
+        spanElement.innerText = node.attrs.language;
 
-      languageWarp.appendChild(spanElement);
-      languageWarp.appendChild(getArrowDownIcon());
+        languageWarp.appendChild(spanElement);
+        languageWarp.appendChild(getArrowDownIcon());
 
-      languageWarp.addEventListener("click", (event: MouseEvent) => {
-        if (node.attrs.lockSelector) {
-          return;
-        }
+        languageWarp.addEventListener("click", (event: MouseEvent) => {
+          if (node.attrs.lockSelector) {
+            return;
+          }
 
-        event.stopPropagation();
-        const pos = getPos();
-        if (typeof pos === "number") {
-          view.dispatch(
-            view.state.tr.setNodeMarkup(pos, null, {
-              ...node.attrs,
-              showSelector: true,
-              lockSelector: true,
-            })
-          );
-        }
-      });
-      dom.insertBefore(languageWarp, contentDOM);
-      // }
+          event.stopPropagation();
+          const pos = getPos();
+          if (typeof pos === "number") {
+            view.dispatch(
+              view.state.tr.setNodeMarkup(pos, null, {
+                ...node.attrs,
+                showSelector: true,
+                lockSelector: true,
+              })
+            );
+          }
+        });
+        dom.insertBefore(languageWarp, contentDOM);
+      }
 
       const elementMouseEnterHandler = () => {
         if (node.attrs.lockSelector) {
