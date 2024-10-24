@@ -500,12 +500,16 @@ NESTED BLOCKS
   display: flex;
 }
 
-.bn-block-content[data-content-type="codeBlock"] .code-language:hover {
+.bn-block-content[data-content-type="codeBlock"] .code-language[disable] {
+  cursor: unset;
+}
+
+.bn-block-content[data-content-type="codeBlock"] .code-language:not([disable]):hover {
   background-color: #414141;
   border-radius: 4px;
 }
 
-.bn-block-content[data-content-type="codeBlock"] .code-language:active {
+.bn-block-content[data-content-type="codeBlock"] .code-language:not([disable]):active {
   background-color: #545454;
   border-radius: 4px;
 }

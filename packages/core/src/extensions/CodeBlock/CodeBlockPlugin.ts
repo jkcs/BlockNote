@@ -42,6 +42,9 @@ class CodeBlockToolbarView implements PluginView {
   }
 
   clickHandler = (event: MouseEvent) => {
+    if (!this.editor.isEditable) {
+      return;
+    }
     const editorWrapper = this.pmView.dom.parentElement!;
     const beforeBlockPos = this.blockPos;
 

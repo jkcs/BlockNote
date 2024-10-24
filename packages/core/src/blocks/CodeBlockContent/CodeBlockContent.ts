@@ -306,10 +306,16 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       spanElement.innerText = node.attrs.language;
 
       languageWarp.appendChild(spanElement);
-      languageWarp.appendChild(getArrowDownIcon());
+      if (view.editable) {
+        languageWarp.appendChild(getArrowDownIcon());
+      }
+
+      if (!view.editable) {
+        languageWarp.setAttribute("disable", "");
+      }
 
       languageWarp.addEventListener("click", (event: MouseEvent) => {
-        if (node.attrs.lockSelector) {
+        if (node.attrs.lockSelector || !view.editable) {
           return;
         }
 
