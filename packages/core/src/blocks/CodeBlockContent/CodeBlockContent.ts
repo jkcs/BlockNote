@@ -48,7 +48,6 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
 
   group: "blockContent",
   code: true,
-  isolating: true,
   defining: true,
   selectable: true,
 
@@ -295,35 +294,37 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
       const codeDOM = document.createElement("div");
       contentDOM.appendChild(codeDOM);
 
-      if (node.attrs.showSelector || node.attrs.lockSelector) {
-        const languageWarp = document.createElement("div");
-        languageWarp.className = "code-language";
-        languageWarp.setAttribute("contentEditable", "false");
-        const spanElement = document.createElement("span");
-        spanElement.innerText = node.attrs.language;
+      dom.appendChild(contentDOM);
 
-        languageWarp.appendChild(spanElement);
-        languageWarp.appendChild(getArrowDownIcon());
+      // if (node.attrs.showSelector || node.attrs.lockSelector) {
+      const languageWarp = document.createElement("div");
+      languageWarp.className = "code-language";
+      languageWarp.setAttribute("contentEditable", "false");
+      const spanElement = document.createElement("span");
+      spanElement.innerText = node.attrs.language;
 
-        languageWarp.addEventListener("click", (event: MouseEvent) => {
-          if (node.attrs.lockSelector) {
-            return;
-          }
+      languageWarp.appendChild(spanElement);
+      languageWarp.appendChild(getArrowDownIcon());
 
-          event.stopPropagation();
-          const pos = getPos();
-          if (typeof pos === "number") {
-            view.dispatch(
-              view.state.tr.setNodeMarkup(pos, null, {
-                ...node.attrs,
-                showSelector: true,
-                lockSelector: true,
-              })
-            );
-          }
-        });
-        contentDOM.insertBefore(languageWarp, codeDOM);
-      }
+      languageWarp.addEventListener("click", (event: MouseEvent) => {
+        if (node.attrs.lockSelector) {
+          return;
+        }
+
+        event.stopPropagation();
+        const pos = getPos();
+        if (typeof pos === "number") {
+          view.dispatch(
+            view.state.tr.setNodeMarkup(pos, null, {
+              ...node.attrs,
+              showSelector: true,
+              lockSelector: true,
+            })
+          );
+        }
+      });
+      dom.insertBefore(languageWarp, contentDOM);
+      // }
 
       const elementMouseEnterHandler = () => {
         if (node.attrs.lockSelector) {

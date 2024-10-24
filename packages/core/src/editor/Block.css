@@ -470,7 +470,7 @@ NESTED BLOCKS
 }
 
 /* Code Block */
-.bn-block-content[data-content-type="codeBlock"] .code-content {
+.bn-block-content[data-content-type="codeBlock"] {
   display: block;
   padding: 30px 5px 25px 20px;
   background-color: #27272A;
@@ -479,7 +479,6 @@ NESTED BLOCKS
   border-radius: 4px;
   position: relative;
   font-family: monospace;
-  width: 100%;
 }
 
 .bn-block-content[data-content-type="codeBlock"] .code-language {

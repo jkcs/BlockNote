@@ -36,8 +36,6 @@ export function handleArrowKeysPress(
 
   const isSelectEnd = $to.pos === $to.end();
   const isSelectStart = $from.pos === $from.start();
-  const isAtEnd = $from.parentOffset === $from.parent.nodeSize - 2;
-  const isAtStart = $from.parentOffset === 0;
 
   if (!empty && isSelectEnd && keyEnd) {
     return editor.commands.command(({ tr }) => {
@@ -51,42 +49,6 @@ export function handleArrowKeysPress(
       tr.setSelection(Selection.near(doc.resolve($from.pos)));
       return true;
     });
-  }
-
-  if (!(isAtEnd && keyEnd) && !(isAtStart && keyStart)) {
-    return false;
-  }
-
-  if (keyStart && isAtStart) {
-    const before = $from.before();
-    if (before < 4) {
-      return true;
-    }
-
-    // BlockContainer Size
-    const nodeBefore = doc.nodeAt(before - 3);
-    if (nodeBefore) {
-      return editor.commands.command(({ tr }) => {
-        tr.setSelection(Selection.near(doc.resolve(before - 3)));
-        return true;
-      });
-    }
-  }
-
-  if (keyEnd && isAtEnd) {
-    const after = $from.after();
-    if (doc.nodeSize < after + 2) {
-      return false;
-    }
-
-    const nodeAfter = doc.nodeAt(after + 2);
-
-    if (nodeAfter) {
-      return editor.commands.command(({ tr }) => {
-        tr.setSelection(Selection.near(doc.resolve(after + 3)));
-        return true;
-      });
-    }
   }
 
   return false;
