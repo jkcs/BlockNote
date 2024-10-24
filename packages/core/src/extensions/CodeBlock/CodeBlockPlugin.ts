@@ -7,7 +7,9 @@ import { BlockSchema, InlineContentSchema, StyleSchema } from "../../schema";
 import { EventEmitter } from "../../util/EventEmitter";
 import { getBlockInfoFromPos } from "../../api/getBlockInfoFromPos";
 
-export type CodeBlockState = UiElementPosition;
+export type CodeBlockState = UiElementPosition & {
+  language: string;
+};
 
 class CodeBlockToolbarView implements PluginView {
   public state?: CodeBlockState;
@@ -56,19 +58,20 @@ class CodeBlockToolbarView implements PluginView {
           break;
         }
 
-        if (isinCodeLanguageEle) {
-          break;
-        }
-
         parent = parent.parentElement;
       }
 
       this.blockPos = this.pmView.posAtDOM(parent as Node, 0);
+      const blockInfo = getBlockInfoFromPos(
+        this.pmView.state.doc,
+        this.blockPos
+      );
 
-      if (!this.state?.show && isinCodeLanguageEle && parent) {
+      if (!this.state?.show && isinCodeLanguageEle && parent && blockInfo) {
         this.state = {
           show: true,
           referencePos: parent.getBoundingClientRect(),
+          language: blockInfo.contentNode.attrs.language,
         };
         this.emitUpdate();
       }

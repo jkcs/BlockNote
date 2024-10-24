@@ -7,14 +7,14 @@ import {
   StyleSchema,
   CodeBlockLanguageConfig,
 } from "@blocknote/core";
-import { flip, offset } from "@floating-ui/react";
-import { FC } from "react";
+import { flip, offset, shift, size } from "@floating-ui/react";
+import { FC, useMemo } from "react";
 
 import { useBlockNoteEditor } from "../../hooks/useBlockNoteEditor";
-import { useUIElementPositioning } from "../../hooks/useUIElementPositioning";
 import { useUIPluginState } from "../../hooks/useUIPluginState";
 import { CodeBlockToolbar } from "./CodeBlockToolbar";
 import { CodeBlockToolbarProps } from "./CodeBlockToolbarProps";
+import { useUIListBoxPositioning } from "../../hooks/useUIListboxPositioning";
 
 const items = CodeBlockLanguageConfig.bundledLanguages;
 
@@ -34,13 +34,49 @@ export const CodeBlockToolbarController = <
   const state = useUIPluginState(
     editor.codeBlockToolbar.onUpdate.bind(editor.codeBlockToolbar)
   );
-  const { isMounted, ref, style, getFloatingProps } = useUIElementPositioning(
+
+  const selectedIndex = useMemo(() => {
+    const index = items.indexOf(state?.language || "");
+    if (index === -1) {
+      return null;
+    }
+
+    return index;
+  }, [state]);
+
+  const {
+    isMounted,
+    ref,
+    style,
+    getFloatingProps,
+    getItemProps,
+    context,
+    elementsRef,
+    activeIndex,
+  } = useUIListBoxPositioning(
     state?.show || false,
     state?.referencePos || null,
     4000,
+    selectedIndex,
     {
-      placement: "top-start",
-      middleware: [offset(10), flip()],
+      placement: "bottom-start",
+      middleware: [
+        offset(0),
+        // Flips the menu placement to maximize the space available, and prevents
+        // the menu from being cut off by the confines of the screen.
+        flip({
+          mainAxis: true,
+          crossAxis: false,
+        }),
+        shift(),
+        size({
+          apply({ availableHeight, elements }) {
+            Object.assign(elements.floating.style, {
+              maxHeight: `${availableHeight - 5}px`,
+            });
+          },
+        }),
+      ],
       onOpenChange: (open) => {
         if (!open) {
           editor.codeBlockToolbar.closeMenu();
@@ -54,7 +90,7 @@ export const CodeBlockToolbarController = <
     return null;
   }
 
-  const { show, referencePos, ...data } = state;
+  const { show, referencePos, language, ...data } = state;
 
   const Component = props.codeBlockToolbar || CodeBlockToolbar;
 
@@ -63,6 +99,12 @@ export const CodeBlockToolbarController = <
       <Component
         {...data}
         {...callbacks}
+        floatingContext={context}
+        getItemProps={getItemProps}
+        elementsRef={elementsRef}
+        language={language}
+        activeIndex={activeIndex}
+        selectedIndex={selectedIndex}
         items={items}
         onItemClick={(item) => {
           editor.codeBlockToolbar.editLanguage(item);

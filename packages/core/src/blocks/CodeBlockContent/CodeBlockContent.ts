@@ -305,11 +305,12 @@ export const CodeBlockContent = createStronglyTypedTiptapNode({
         languageWarp.appendChild(spanElement);
         languageWarp.appendChild(getArrowDownIcon());
 
-        languageWarp.addEventListener("click", () => {
+        languageWarp.addEventListener("click", (event: MouseEvent) => {
           if (node.attrs.lockSelector) {
             return;
           }
 
+          event.stopPropagation();
           const pos = getPos();
           if (typeof pos === "number") {
             view.dispatch(
